@@ -3,13 +3,14 @@ package com.gh.archlayer.accessor.api.jpa;
 import com.gh.archlayer.accessor.api.DataAccessor;
 import com.gh.archlayer.accessor.model.PersistenceEntity;
 import com.gh.archlayer.service.filter.Filter;
-import com.gh.archlayer.service.model.Model;
+import com.gh.archlayer.service.model.DataModel;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface JpaDataAccessor<M extends Model, E extends PersistenceEntity> extends DataAccessor<M>, JpaQueryAccessor<M, E> {
+public interface JpaDataAccessor<M extends DataModel, E extends PersistenceEntity> extends DataAccessor<M>, JpaQueryAccessor<M, E> {
 	enum PersistenceControl {
 		NONE,
 		FLUSH,
@@ -26,8 +27,8 @@ public interface JpaDataAccessor<M extends Model, E extends PersistenceEntity> e
 
 	void deleteByUids(Collection<String> uids, PersistenceControl persistenceControl);
 
-	void delete(CriteriaQuery<E> cq, List<Filter<?>> filters);
+	void delete(CriteriaQuery<E> cq, Root<E> root, List<? extends Filter<?>> filters);
 
-	void delete(CriteriaQuery<E> cq);
+	void delete(CriteriaQuery<E> cq, Root<E> root);
 
 }

@@ -7,6 +7,6 @@ import java.time.LocalDate;
 public class LocalDateFilterResolver extends ComparableFilterResolver<LocalDate, LocalDateFilter> {
 	@Override
 	public Class<LocalDateFilter> getFilterType() {
-		return  LocalDateFilter.class;
+		return LocalDateFilter.class;
 	}
 }

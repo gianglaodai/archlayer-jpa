@@ -3,21 +3,21 @@ package com.gh.archlayer.accessor.api.jpa;
 import com.gh.archlayer.accessor.api.EntityMapper;
 import com.gh.archlayer.accessor.model.PersistenceEntity;
 import com.gh.archlayer.service.filter.Filter;
-import com.gh.archlayer.service.model.Model;
+import com.gh.archlayer.service.model.DataModel;
 import com.gh.archlayer.service.paging.PageRequest;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.gh.archlayer.utils.Functions.peek;
+import static com.gh.archlayer.utils.FunctionUtils.peek;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-public abstract class AbstractJpaDataAccessor<M extends Model, E extends PersistenceEntity>
+public abstract class AbstractJpaDataAccessor<M extends DataModel, E extends PersistenceEntity>
 		extends AbstractJpaQueryAccessor<M, E>
 		implements JpaDataAccessor<M, E> {
 	private final int batchSize;
@@ -53,9 +53,7 @@ public abstract class AbstractJpaDataAccessor<M extends Model, E extends Persist
 			return List.of();
 		}
 		final EntityManager em = getEntityManager();
-		final EntityTransaction tx = em.getTransaction();
 		final EntityMapper<M, E> mapper = getMapper();
-		tx.begin();
 		int index = 0;
 		final List<M> result = new ArrayList<>();
 		for (final M model : models) {
@@ -67,7 +65,6 @@ public abstract class AbstractJpaDataAccessor<M extends Model, E extends Persist
 			}
 		}
 		applyPersistenceControl(persistenceControl);
-		tx.commit();
 		return result;
 	}
 
@@ -103,18 +100,13 @@ public abstract class AbstractJpaDataAccessor<M extends Model, E extends Persist
 	}
 
 	@Override
-	public void delete(final CriteriaQuery<E> cq, final List<Filter<?>> filters) {
-		deleteEntities(findEntities(cq, filters), PersistenceControl.FLUSH);
+	public void delete(final CriteriaQuery<E> cq, Root<E> root, final List<? extends Filter<?>> filters) {
+		deleteEntities(findEntities(cq, root, filters), PersistenceControl.FLUSH);
 	}
 
 	@Override
-	public void delete(final CriteriaQuery<E> cq) {
-		deleteEntities(findEntities(cq), PersistenceControl.FLUSH);
-	}
-
-	@Override
-	public void deleteById(final List<Filter<?>> filters) {
-		deleteEntities(findEntities(filters), PersistenceControl.FLUSH);
+	public void delete(final CriteriaQuery<E> cq, Root<E> root) {
+		deleteEntities(findEntities(cq, root), PersistenceControl.FLUSH);
 	}
 
 	private void deleteEntities(final Collection<E> entities, final PersistenceControl persistenceControl) {
@@ -122,8 +114,6 @@ public abstract class AbstractJpaDataAccessor<M extends Model, E extends Persist
 			return;
 		}
 		final EntityManager em = getEntityManager();
-		final EntityTransaction tx = em.getTransaction();
-		tx.begin();
 		int index = 0;
 		for (final E entity : entities) {
 			if(nonNull(entity)){
@@ -135,7 +125,6 @@ public abstract class AbstractJpaDataAccessor<M extends Model, E extends Persist
 			}
 		}
 		applyPersistenceControl(persistenceControl);
-		tx.commit();
 	}
 
 	private void applyPersistenceControl(final PersistenceControl persistenceControl) {
